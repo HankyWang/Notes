@@ -223,3 +223,138 @@ k-最近邻方法对k的个数比较敏感，需要经验进行确定。此外�
 - *最大树深度*：当进一步的划分时将超过最大树深度的时候，停止划分。
 
 ##### 2.生成完全的决策树后进行剪枝。 #####
+通过对决策树的子树进行评估，若去掉某个子树后整个决策树表现更好，则该子集被剪枝。具体来说，在C4.5和CART中有不同的做法。
+
+在CART中，对每个子树构造了一个成本复杂性指数，该指数综合考虑了误分类错误率和树的结构复杂度。然后从完全树开始，构造了一系列结构越来越简化的树，从中选择该指数最小的树作为最好的树。其中，误分类率要采用一个单独的剪枝集(不同于训练集的数据集的一个子集)来评估。树的结构复杂度则由树的终端结点个数与每个终端结点的成本的积来刻画。
+
+C4.5则采用了悲观剪枝法。它不使用剪枝集去估计树的误分类率，而是用树的叶节点在训练集上的错误率，在一定的置信度上根据二项式分布估计其在未知数据上的错误率上限。根据该值来确定是否进行剪枝。C4.5的剪枝的过程中，可以将子树完全剪掉，也可以用该子树的某一个子树来代替。
+
+#### 3.决策树的拓展 ####
+1. 多元划分：为进一步提高效率，在每一个结点采用几个属性的线性组合来进行划分，相当于采用倾斜的决策面进行划分。然而，找到最优的线性属性组合非常困难，只能采用一些启发式的方法，如爬山法（在CART中使用）。采用多元属性进行划分的决策树的性能要好于传统的决策树，计算复杂度则远高于一元决策树。
+2. 超大数据集：传统的决策树算法需要所有数据集均在内存中，对于超大规模的数据集来说这不实际。解决超大数据集的问题的一个方法就是采样。另外一个方面则可以对传统决策树进行改进，如SLIQ算法。SLIQ算法采用与排序方法，使得对于数值属性，只需要在开始排序一次，而无需在每个内部结点都重新排序；树的生长采用广度优先方法；对于离散属性，则只选择属性值的一部分进行评估。SLIQ在决策树的每个层次只需要最多两次数据扫描，因而能够处理驻留在磁盘上的数据集。
+3. 成本矩阵：使用成本矩阵可指定将一个类错误划分到另一类的成本。对于支持成本举证的决策树算法，可以给异常数据分类为正常数据指定到更大的误分类成本值，强迫决策树算法更关注异常数据，从而在异常数据类上的性能得到提升，满足应用的需求。决策树可通过寻找最优划分点的计算方法进行拓展而支持成本矩阵。
+
+----------
+
+----------
+
+### 2. 前馈神经网络 ###
+#### 基本概念 ####
+神经元根据起输入做出响应（由激励函数确定），链接的强度（权重）随着输入不断进行调整，直至对所有输入都响应正确为止。前馈神经网络是一种分层次的人工神经网络，主要用于分类与预测。
+
+一个典型的前馈神经网络由输入层、输出层和若干个中间层（又称为隐层，因其对输入输出不可见）组成，每层由若干个神经元组成，层间的结点为全连接，层内的结点无连接。一般地，输入层和输出层神经元的个数由training set确定。各层结点之间的连接是有权重的，每个结点的输入由连接到它的各个结点的输出的加权和确定（输入层除外），**如h<sub>mn</sub>的输入为**:
+
+<img src="http://chart.googleapis.com/chart?cht=tx&chl={\sum\limit_{k=1}^{p}O_{i_k}W_{i_kh_{mn}}}%2B{b_{h_{mn}}}" style="display:block;margin-left:auto;margin-right:auto">
+
+式中，O<sub>i<sub>k</sub></sub>为结点i<sub>k</sub>的输出，W<sub>i<sub>k</sub>h<sub>mn</sub></sub>为结点i<sub>k</sub>到结点h<sub>mn</sub>的权重，b<sub>h<sub>mn</sub></sub>为该结点的偏置（用于克服输入全为零时训练无法进行的情况）。
+
+偏置在神经元网络中常常表示呈隐层或输出层的一个单独输入（其输入是1，偏置量表现为权重），可将上式改写为：
+
+<img src="http://chart.googleapis.com/chart?cht=tx&chl={\sum\limit_{k=0}^{p}O_{i_k}W_{i_kh_{mn}}},(k=0,O_{i_0}=1,W_{i_0h_{mn}}=b_{h_{mn}})" style="display:block;margin-left:auto;margin-right:auto">
+
+神经网络的**输出**由它的激励函数所确定。常用的激励函数由Sigmod函数。该函数表现为两种形式，一种是logistic函数，即
+
+<img src="http://chart.googleapis.com/chart?cht=tx&chl=f(x)=\frac{1}{1%2Be^{-ax}," style="display:block;margin-left:auto;margin-right:auto">
+
+式中，a>0是一个常数，可以控制曲线的斜率，图形如下：
+
+<img src="http://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Logistic-curve.svg/600px-Logistic-curve.svg.png">函数的自变量取值范围为(0,1)
+
+另一种是双曲正切（tanh）函数，即
+
+<img src="http://chart.googleapis.com/chart?cht=tx&chl=f(x)=\frac{1-e^{-ax}}{1%2Be^{ax}}," style="display:block;margin:auto">
+式中，α，β>0是常数，可以控制曲线的斜率，它与Sigmod函数的图形类似，但取值范围是(-1,1)或(-β,β)。
+
+此外，还有比较少用的阈值函数，即：
+
+<img src="http://latex.codecogs.com/svg.latex?f(x)=\left\{\begin{aligned}1,x\geq0;\\2,x<0.\end{aligned}\right" style="display:block;margin:auto">
+
+从输入到输入层即从输出到输出层都是直接连接。具有一个隐层的前馈神经网络可以近似任何连续函数。在实际应用中，最常用的也是三层网络。出于网络复杂性、训练难度、防止过拟合等原因，也可以使用三层以上的网络。
+
+
+----------
+#### BP训练过程 ####
+##### 1.算法描述 #####
+如果网络的结构（即隐层数量），每层的结点数已经确定，则前馈神经网络的训练过程就是确定各结点之间的连接的权重。最常用的训练方法是反向传播算法，即BP（Back-Propagation）算法。该算法根据训练样本在网络正向传播时产生的误差，从输出结点反向逐层修正每个连接的权重，从而使得网络对输入收敛。
+
+前馈网络的BP训练过程可简述如下：
+>算法2-1 BP网络训练过程
+
+>根据训练集确定网络结构；
+
+>初始化网络权重为随机小数；
+
+>初始化总误差为大于预先设定阈值。
+
+>设定最大迭代次数；
+
+>迭代次数=1；
+
+>若总误差大于预先设定的阈值或者迭代次数小于设定次数，重复下列过程：
+
+>>总误差=0；
+
+>>对训练集的每个样本:
+
+>>>从输入层开始，逐层计算每层网络的输出，直至输出层；
+
+>>>计算输出层的输出和期望输出的差的平方和E；
+
+>>>总误差=总误差+E；
+
+>>>根据E反向调整各层的网络权重；
+
+>>总误差 = 总误差/2
+
+>>迭代次数 = 迭代次数+1
+
+>结束
+
+##### 2.相关公式 #####
+假定用y<sub>i</sub>(n)代表第n次前向迭代中结点i的输出，v<sub>j</sub>(n)代表第n次前向迭代中结点j的输入，则由
+<img src="http://chart.googleapis.com/chart?cht=tx&chl=v_j(n)=\sum\limit_{i=0}^rw_{ji}(n)y_i(n)," style="margin:auto;display:block">
+
+<img src="http://chart.googleapis.com/chart?cht=tx&chl=y_j(n)=f(v_j(n))," style="display:block;margin:auto">
+
+式中，r是所有连接到结点j的结点；w<sub>ji</sub>是这些结点的权重；i=0时，w<sub>ji</sub>即是结点的偏置。
+
+如果j是输出结点，假定d<sub>j</sub>(n)代表结点j的正确的输出（按照训练集），则结点j输出的偏差为：
+
+<img src="http://chart.googleapis.com/chart?cht=tx&chl=e_j(n)=d_j(n)-y_j(n)," style="margin:auto;display:block">
+
+可定义网络的输出误差为所有输出结点的偏差的平方和，即
+
+<img src="http://chart.googleapis.com/chart?cht=tx&chl=\varepsilon(n)=\frac12\sum\limit_j{e_j}^2(n)." style="margin:auto;display:block">
+
+则网络训练的目的就最小化上式即权重的函数。计算可得到网络中权重的调节公式为:
+
+<img src="http://chart.googleapis.com/chart?cht=tx&chl=\Delta w_{ji}(n)=-\eta\frac{\partial\varepsilon(n)}{\partial w_{ji}(n)}=\eta\delta_j(n)y_i(n)" style="margin:auto;display:block">
+
+式中，<img src="http://chart.googleapis.com/chart?cht=tx&chl=\eta">是学习速率， <img src="http://chart.googleapis.com/chart?cht=tx&chl=\delta_j(n)"> 称为局部梯度。
+
+故某条连接的权重变化由该连接的入节点的局部梯度与该连接的出节点的输出的乘积所决定，使用学习速率可调节梯度下降的速度。
+
+对于输出层结点j，局部梯度表示为输出误差与该结点输出的微分的积，即
+<img src="http://chart.googleapis.com/chart?cht=tx&chl=\delta_j(n) = e_j(n)f^'_j(v_j(n)) ." style="margin:auto;display:block">
+
+对于隐层结点，局部梯度的值依赖于它的上一层结点（输出层或上一个隐层），表现为该结点输出的微分与上一层结点局部梯度加权和的积，即
+
+<img src="http://chart.googleapis.com/chart?cht=tx&chl=\delta_j(n)=f^'_j(v_j(n))\sum\limit_{k=1}^c\delta_k(n)w_{kj}(n)" style="margin:auto;display:block">
+
+对于logistics函数，其微分可表示为
+
+<img src="http://chart.googleapis.com/chart?cht=tx&chl=f^'_j(v_j(n))=\frac{\al e^{-\al v_j(n)}}{(1%2Be^{-\al v_j(n)})^2}=\al y_i(n)(1-y_i(n))" style="margin:auto;display:block">
+
+
+对于双曲正弦函数，其微分可表示为
+
+<img src="http://chart.googleapis.com/chart?cht=tx&chl=f^'_j(v_j(n))=\frac\al\be (\be-y_i(n))(\be%2By_i(n))" style="margin:auto;display:block">
+
+虽然<img src="http://chart.googleapis.com/chart?cht=tx&chl=\eta">可调节学习速率，但是当<img src="http://chart.googleapis.com/chart?cht=tx&chl=\eta">过大是，容易使网络变得不稳定；而当<img src="http://chart.googleapis.com/chart?cht=tx&chl=\eta">过小时，则容易使得网络学习速率过慢。为使得学习速率较快而避免网络不稳定，可在权重调节公式加入一个动量项：
+
+<img src="http://chart.googleapis.com/chart?cht=tx&chl=\Delta w_{ji}(n)=\al\Delta w_{ji}(n-1)+\eta\delta_j(n)y_i(n)" style="margin:auto;display:block">
+
+式中，<img src="http://chart.googleapis.com/chart?cht=tx&chl=\al">>0，称为动量常数。
+
+
+
