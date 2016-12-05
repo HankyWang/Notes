@@ -356,5 +356,5 @@ C4.5则采用了悲观剪枝法。它不使用剪枝集去估计树的误分类�
 
 式中，<img src="http://chart.googleapis.com/chart?cht=tx&chl=\al">>0，称为动量常数。
 
-
+as
 
